@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+          cache: true
+      - name: Test
+        run: go test ./...
+      - name: Build
+        run: go build -o bin/ai-sec-mcp ./cmd/ai-sec-mcp
+      - name: Demo lockfile fail on sneaky write tool
+        run: |
+          ./bin/ai-sec-mcp lock ./fixtures/clean --out /tmp/clean-lock.json
+          set +e
+          ./bin/ai-sec-mcp check ./fixtures/bad-new-write-tool --lockfile /tmp/clean-lock.json
+          code=$?
+          set -e
+          test "$code" -ne 0
+      - name: Demo lockfile fail on schema drift
+        run: |
+          ./bin/ai-sec-mcp lock ./fixtures/clean --out /tmp/clean-lock.json
+          set +e
+          ./bin/ai-sec-mcp check ./fixtures/bad-schema-drift --lockfile /tmp/clean-lock.json
+          code=$?
+          set -e
+          test "$code" -ne 0

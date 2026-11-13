@@ -1,0 +1,61 @@
+name: mcp-tool-lockfile
+
+# Reusable workflow: fail-closed lockfile diff on PRs.
+#
+# jobs:
+#   capabilities:
+#     uses: saintmalik/ai-sec-mcp/.github/workflows/lockfile-check.yml@main
+#     with:
+#       lockfile: mcp-lockfile.json
+
+on:
+  workflow_call:
+    inputs:
+      path:
+        description: Path within the caller repo to audit
+        type: string
+        required: false
+        default: "."
+      lockfile:
+        description: Baseline lockfile path (empty = auto-discover under path)
+        type: string
+        required: false
+        default: "mcp-lockfile.json"
+      version:
+        description: ai-sec-mcp module version (e.g. latest or v0.1.0)
+        type: string
+        required: false
+        default: "latest"
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Install ai-sec-mcp
+        run: go install "github.com/saintmalik/ai-sec-mcp/cmd/ai-sec-mcp@${{ inputs.version }}"
+
+      - name: Capability report
+        run: |
+          set -euo pipefail
+          ARGS=("${{ inputs.path }}")
+          if [[ -n "${{ inputs.lockfile }}" ]]; then
+            ARGS+=(--lockfile "${{ inputs.lockfile }}")
+          fi
+          ai-sec-mcp report "${ARGS[@]}" --format md | tee ai-sec-capability-report.md
+          echo "## ai-sec-mcp capability report" >> "$GITHUB_STEP_SUMMARY"
+          cat ai-sec-capability-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Diff tool lockfile (fail-closed)
+        run: |
+          set -euo pipefail
+          ARGS=("${{ inputs.path }}")
+          if [[ -n "${{ inputs.lockfile }}" ]]; then
+            ARGS+=(--lockfile "${{ inputs.lockfile }}")
+          fi
+          ai-sec-mcp check "${ARGS[@]}"

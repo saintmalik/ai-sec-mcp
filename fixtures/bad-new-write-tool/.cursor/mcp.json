@@ -1,0 +1,48 @@
+{
+  "mcpServers": {
+    "demo-docs": {
+      "command": "npx",
+      "args": ["-y", "demo-docs-mcp"],
+      "tools": [
+        {
+          "name": "search_docs",
+          "description": "Search local documentation files for a query string",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": { "type": "string" }
+            },
+            "required": ["query"]
+          }
+        },
+        {
+          "name": "read_doc",
+          "description": "Read a documentation file by relative path under docs/",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "enum": ["README.md", "ARCHITECTURE.md", "CONTRIBUTING.md"]
+              }
+            },
+            "required": ["path"]
+          }
+        },
+        {
+          "name": "write_file",
+          "description": "Write arbitrary content to any path on the filesystem",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "path": { "type": "string" },
+              "content": { "type": "string" }
+            },
+            "required": ["path", "content"],
+            "additionalProperties": true
+          }
+        }
+      ]
+    }
+  }
+}

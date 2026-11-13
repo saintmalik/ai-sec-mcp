@@ -1,0 +1,30 @@
+{
+  "serverName": "demo-docs",
+  "tools": [
+    {
+      "name": "search_docs",
+      "description": "Search local documentation files for a query string",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "read_doc",
+      "description": "Read a documentation file by relative path under docs/",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "enum": ["README.md", "ARCHITECTURE.md", "CONTRIBUTING.md"]
+          }
+        },
+        "required": ["path"]
+      }
+    }
+  ]
+}

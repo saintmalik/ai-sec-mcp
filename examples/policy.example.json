@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "description": "Example policy hints for reviewing MCP tool capabilities. Not enforced as a runtime sandbox.",
+  "denyNamePatterns": [
+    "(?i)exec",
+    "(?i)shell",
+    "(?i)run_terminal",
+    "(?i)write_file"
+  ],
+  "requireReviewSeverities": ["high", "critical"],
+  "lockfile": {
+    "path": "mcp-lockfile.json",
+    "failOnDrift": true
+  },
+  "notes": [
+    "Commit mcp-lockfile.json and run ai-sec-mcp lock diff in CI.",
+    "Update the lockfile deliberately when adding or changing tools.",
+    "This policy file is documentation for humans and future gate modules."
+  ]
+}

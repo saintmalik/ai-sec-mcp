@@ -1,0 +1,54 @@
+name: ai-sec-mcp lockfile check
+description: Fail closed if MCP/agent tool inventory drifts from mcp-lockfile.json
+author: saintmalik
+branding:
+  icon: shield
+  color: gray-dark
+
+inputs:
+  path:
+    description: Repository path to audit
+    required: false
+    default: "."
+  lockfile:
+    description: Path to baseline lockfile (empty = auto-discover)
+    required: false
+    default: "mcp-lockfile.json"
+  version:
+    description: ai-sec-mcp module version to install (e.g. latest or v0.1.0)
+    required: false
+    default: "latest"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: "1.25.x"
+
+    - name: Install ai-sec-mcp
+      shell: bash
+      run: go install "github.com/saintmalik/ai-sec-mcp/cmd/ai-sec-mcp@${{ inputs.version }}"
+
+    - name: Capability report
+      shell: bash
+      run: |
+        set -euo pipefail
+        ARGS=("${{ inputs.path }}")
+        if [[ -n "${{ inputs.lockfile }}" ]]; then
+          ARGS+=(--lockfile "${{ inputs.lockfile }}")
+        fi
+        ai-sec-mcp report "${ARGS[@]}" --format md | tee ai-sec-capability-report.md
+        echo "## ai-sec-mcp capability report" >> "$GITHUB_STEP_SUMMARY"
+        cat ai-sec-capability-report.md >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Check lockfile
+      shell: bash
+      run: |
+        set -euo pipefail
+        ARGS=("${{ inputs.path }}")
+        if [[ -n "${{ inputs.lockfile }}" ]]; then
+          ARGS+=(--lockfile "${{ inputs.lockfile }}")
+        fi
+        ai-sec-mcp check "${ARGS[@]}"
